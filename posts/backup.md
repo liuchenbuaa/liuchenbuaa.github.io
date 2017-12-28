@@ -2,28 +2,24 @@
 layout: default
 ---
 
-# _**【笔记】mysql数据库事务**_
+# _**【笔记】spring事务管理**_
 
 ## 前言
-    钻研一下数据库事务
+    钻研一下spring事务
     
-### 1、set autocommit = 0 和 start transaction的差别
+### 1、了解PlatformTransactionManager interface
 
-    start transaction或者begin会开启一个新的事务。
-    commit 提交当前事务修改
-    rollback 回滚当前事务更改
-    set autocommit 命令修改当前会话是否自动提交
+    public interface PlatformTransactionManager {
     
-    执行start transaction之后，autocommit会变成disable状态，直到进行了commit或者rollback操作，之后autocommit会回到之前的状态。
+        TransactionStatus getTransaction(
+                TransactionDefinition definition) throws TransactionException;
     
-    执行set autocommit = 0之后，所有的操作都不会被立即提交，直到执行了commit或者rollback操作。需要注意的是autocommit是一个session变量，不同会话之间不会共享。
-   
-    另外提供两个相关命令
+        void commit(TransactionStatus status) throws TransactionException;
     
-    查看mysql系统autocommit配置 show global variables like 'autocommit';
-    查看当前会话autocommit配置 show variables like '%autocommit%';
+        void rollback(TransactionStatus status) throws TransactionException;
+    }
     
-    相关文档：https://dev.mysql.com/doc/refman/5.7/en/commit.html
+    
     
 ### 2、innodb的x锁和s锁
 
