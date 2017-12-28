@@ -4,12 +4,7 @@ layout: default
 
 Text can be **bold**, _italic_, or ~~strikethrough~~.
 
-[2017-11-24 最近在做的一些事情](posts/2017-11-24).
-
-[2017-11-25 spring aop的一些讨论](posts/2017-12-19).
-
-[2017-11-25 spring aop的一些讨论](posts/2017-12-28).
-
+[Link to another page](another-page).
 
 There should be whitespace between paragraphs.
 
