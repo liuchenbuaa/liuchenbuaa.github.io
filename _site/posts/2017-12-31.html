@@ -18,61 +18,43 @@
       <h1 id="笔记java内存模型"><em><strong>【笔记】java内存模型</strong></em></h1>
 
 <h2 id="前言">前言</h2>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>钻研一下数据库事务
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>研究一下java内存模型
 </code></pre></div></div>
 
-<h3 id="1set-autocommit--0-和-start-transaction的差别">1、set autocommit = 0 和 start transaction的差别</h3>
+<h3 id="1几种类型的内存屏障">1、几种类型的内存屏障</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>start transaction或者begin会开启一个新的事务。
-commit 提交当前事务修改
-rollback 回滚当前事务更改
-set autocommit 命令修改当前会话是否自动提交
-
-执行start transaction之后，autocommit会变成disable状态，直到进行了commit或者rollback操作，之后autocommit会回到之前的状态。
-
-执行set autocommit = 0之后，所有的操作都不会被立即提交，直到执行了commit或者rollback操作。需要注意的是autocommit是一个session变量，不同会话之间不会共享。
-   
-另外提供两个相关命令
-
-查看mysql系统autocommit配置 show global variables like 'autocommit';
-查看当前会话autocommit配置 show variables like '%autocommit%';
-
-相关文档：https://dev.mysql.com/doc/refman/5.7/en/commit.html
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;table&gt;
+    &lt;tr&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;/tr&gt;
+&lt;/table&gt;
 </code></pre></div></div>
 
-<h3 id="2innodb的x锁和s锁">2、innodb的x锁和s锁</h3>
+<h3 id="1volatile关键字内存语义和实现">1、volatile关键字内存语义和实现</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>innodb的行级别锁分为两种：S锁(shared locks) 和 X锁(exclusive locks).
-在读取一条记录的时候会上S锁、更新或者删除一条记录时会加X锁。
-其中X锁与S锁的竞争关系是和java的读写锁类似，就是只有SS不互相影响，其他都不能同时进行。 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>当写一个volatile变量时，JMM会把该线程对应的本地内存中的所有共享变量刷新到主存。
+当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效，从主存读取变量值。
 
-意向锁(Intention Locks)
-意向锁是表锁，代表了对该表读或写的意向。
+volatile关键字的修饰会禁止某些 编译器级别 和 处理器级别 的重排序
+假设有两个连续的操作：
+a) 当第二个操作是volatile写的时候，不管第一个操作是什么，都不能进行重排序。原因是：如果进行指令重排，那么前面的操作可能不会被写回到内存。例如：
+    int a;
+    volatile boolean b;
+    a = 1;//
+    b = false;//这两句赋值不能被重排，否则a = 1将变成内存不可见的。
 
-相关文档：https://dev.mysql.com/doc/refman/5.7/en/innodb-locking.html
+b) 当第一个操作是volatile读的时候，不管第二个操作是什么，都不能进行重排序。
+    int a;
+    volatile boolean b;
+    boolean c = b;//
+    int d = a;//这两句赋值不能被重排，否则a可能读到线程本地内存的值。
+
+c) 当第一个操作是volatile写，第二个操作是volatile读的时候，不能进行重排序。
+    volatile int a;
+    volatile boolean b;
+    b = false;//
+    int c = a;//这两句赋值不能被重排，
 </code></pre></div></div>
 
-<h3 id="3数据库事务嵌套">3、数据库事务嵌套</h3>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mysql事务不能嵌套，在执行start transaction之前会有隐式的commit操作。
-
-相关文档：https://dev.mysql.com/doc/refman/5.7/en/implicit-commit.html
-</code></pre></div></div>
-
-<h3 id="4innodb支持事务myisam不支持">4、innodb支持事务，myisam不支持。</h3>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>innodb支持start transaction，myisam不支持，但是两种引擎都支持setautocommit = 0;
-</code></pre></div></div>
-
-<h3 id="5数据库什么时候会死锁">5、数据库什么时候会死锁</h3>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>相关文档：https://dev.mysql.com/doc/refman/5.7/en/innodb-deadlock-example.html
-</code></pre></div></div>
-
-<h3 id="6readonly的事务声明干什么用">6、readonly的事务声明干什么用</h3>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>保证当前会话获取的数据具有一致性
-</code></pre></div></div>
 
 
       <footer class="site-footer">
