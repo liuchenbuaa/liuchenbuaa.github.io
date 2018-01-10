@@ -18,18 +18,70 @@
       <h1 id="笔记java内存模型"><em><strong>【笔记】java内存模型</strong></em></h1>
 
 <h2 id="前言">前言</h2>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>研究一下java内存模型
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java线程之间的通信由java内存模型控制，java内存模型决定了一个线程对共享变量的修改何时对
+另外一个线程可见。线程之间的共享变量存储在主内存中，每个线程都有一个私有的本地内存，它存
+储了该共享变量的副本。本地内存是一个抽象概念，它涵盖了缓存、写缓冲区、寄存器以及其他的硬
+件和编译器优化。
 </code></pre></div></div>
 
 <h3 id="1几种类型的内存屏障">1、几种类型的内存屏障</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;table&gt;
-    &lt;tr&gt;&lt;/tr&gt;
-    &lt;tr&gt;&lt;/tr&gt;
-&lt;/table&gt;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>为了保证内存可见性，java编译器会在生成指令序列的适当位置插入内存屏障指令来禁止某些处理器
+重排序。其中StoreLoad是一个全能型的屏障，同时具有其他三个屏障的效果。
 </code></pre></div></div>
 
-<h3 id="1volatile关键字内存语义和实现">1、volatile关键字内存语义和实现</h3>
+<ol>
+  <li>
+    <p>LoadLoad Barriers <br />
+Load1 LoadLoad Load2 指令之前的指令装载会先于之后指令的装载</p>
+  </li>
+  <li>
+    <p>StoreStore Barriers
+Store1 StoreStore Store2 确保Store1数据对其他处理器可见 先于 Store2及后续指令的存储</p>
+  </li>
+  <li>
+    <p>LoadStore Barriers
+Load1 LoadStore Store2 确保Load1数据的装载优 先于 Store2的数据刷新到内存</p>
+  </li>
+  <li>
+    <p>StoreLoad Barriers
+Store1 StoreLoad Load2 确保Store1数据存储对其他处理器可见 先于 Load2及后续指令的装载</p>
+  </li>
+</ol>
+
+<h3 id="2happens-before原则">2、happens-before原则</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>在java内存模型中，如果一个操作执行的结果要对另外一个操作可见，那么这两个操作之间必须要存在
+happens-before关系。这种关系并不意味着前一个操作必须要先于后一个操作执行，而是前一个操作
+需要对后一个操作可见。它有以下几条原则：
+</code></pre></div></div>
+
+<ul>
+  <li>
+    <p>程序顺序规则：一个线程中的每个操作，happens-before于该线程的任意后续操作。</p>
+  </li>
+  <li>
+    <p>监视器锁规则：对于一个锁的解锁，happens-before于随后对这个锁的加锁</p>
+  </li>
+  <li>
+    <p>volatile变量传递规则：对一个volatile变量的写，happens-before于后续任意个对这个变量的读</p>
+  </li>
+  <li>
+    <p>传递性：如果A happens-before B，B happens-before C，那么A happens-before C。</p>
+  </li>
+</ul>
+
+<h3 id="3volatile关键字与内存屏障">3、volatile关键字与内存屏障</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>编译器在编译程序时，会对volatile关键字增加以下内存屏障：
+1、在每个volatile写之前增加一个StoreStore屏障，目的是让之前的写操作全部同步到主存。
+2、在每个volatile写之后增加一个StoreLoad屏障，目的是让写操作对之后所有读操作可见。
+3、在每个volatile读之后增加一个LoadLoad屏障，目的是让
+4、在每个volatile读之后增加一个LoadStore屏障。
+</code></pre></div></div>
+
+<h3 id="3volatile关键字内存语义和实现">3、volatile关键字内存语义和实现</h3>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>当写一个volatile变量时，JMM会把该线程对应的本地内存中的所有共享变量刷新到主存。
 当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效，从主存读取变量值。
