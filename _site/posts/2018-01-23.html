@@ -15,16 +15,15 @@
     </section>
 
     <section class="main-content">
-      <h1 id="笔记mysql读写分离方案"><em><strong>【笔记】mysql读写分离方案</strong></em></h1>
+      <h1 id="笔记reentrantlock实现研究"><em><strong>【笔记】ReentrantLock实现研究</strong></em></h1>
 
-<h2 id="前言">前言</h2>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>读写分离方案调研
+<h3 id="1几种事务隔离级别">1、几种事务隔离级别</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lock接口的几个方法：
+lock(); lockInterruptibly(); newCondition(); tryLock(); tryLock(long,TimeUnit); unlock();    
 </code></pre></div></div>
 
-<h3 id="1atlas">1、Atlas</h3>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>* 项目地址:https://github.com/Qihoo360/Atlas
-* 基于mysql protocol、支持数据分片和读写分离等功能。
-</code></pre></div></div>
+<h3 id="1sql标准的4类事务隔离级别">1、SQL标准的4类事务隔离级别</h3>
 
 
 
